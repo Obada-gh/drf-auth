@@ -144,5 +144,67 @@ class IscompanyOrReadOnly(permissions.BasePermission):
 
 I think i fixed it
 
+# __________________________________________:
+
+auth:
+
+```
+change the port in docker-compose.yml:
+
+version: '3.9'
+
+services:
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8001
+    volumes:
+      - .:/code
+    ports:
+      - "8001:8001"
+    depends_on: 
+      - db
+
+------------------------------------------------------------
+Installation & Setup
+For this tutorial we are going to use the djangorestframework_simplejwt library, recommended by the DRF developers.
+
+poetry add djangorestframework_simplejwt
+
+in settings.py:
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+}
+
+urls.py in project rtx
+
+from django.urls import path
+from rest_framework_simplejwt import views as jwt_views
+
+urlpatterns = [
+    # Your URLs...
+    path('api/token/', jwt_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
+]
+
+
+
+
+
+
+```
+
+
+
+
 
 
