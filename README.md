@@ -177,13 +177,23 @@ For this tutorial we are going to use the djangorestframework_simplejwt library,
 
 poetry add djangorestframework_simplejwt
 
+poetry export -f requirements.txt -o requirements.txt
+docker-compose up --build
+
 in settings.py:
 
 REST_FRAMEWORK = {
+    'DEFAUILT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        
     ],
 }
+
 
 urls.py in project rtx
 
@@ -202,6 +212,83 @@ urlpatterns = [
 
 
 ```
+
+for part2 :
+
+```
+in sitting.py
+
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'GPUs.apps.GpusConfig',
+    'rest_framework', #3d party app
+    'whitenoise.runserver_nostatic',
+]
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+]
+
+import os
+
+STATIC_URL = '/static/'
+STATIC_DIR = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [
+    STATIC_DIR,
+]
+
+
+in docker-compase.yml:
+
+version: '3.9'
+
+services:
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
+  web:
+    build: .
+    command: gunicorn rtx.wsgi:application --bind 0.0.0.0:8002 --workers 4
+    # command: python manage.py runserver 0.0.0.0:8001
+    volumes:
+      - .:/code
+    ports:
+      - "8002:8002"
+    depends_on: 
+      - db
+
+in terminal:
+
+poetry add gunicorn
+poetry add whitenoise
+
+poetry export -f requirements.txt -o requirements.txt
+docker-compose up --build
+
+
+
+```
+
+
+
+
 
 
 
